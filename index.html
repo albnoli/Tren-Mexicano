@@ -3,50 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tren Mexicano Pro</title>
+    <title>Tren Mexicano Premium</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        :root { --primary: #2c3e50; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f4f7f6; color: #333; }
-        .container { padding: 20px; max-width: 600px; margin: auto; }
-        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 15px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 16px; margin-top: 5px; }
-        .btn-add { background: var(--accent); color: white; }
-        .btn-round { background: var(--success); color: white; margin-top: 20px; }
-        .btn-end { background: var(--danger); color: white; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; border-radius: 8px; overflow: hidden; }
-        th, td { border: 1px solid #eee; padding: 10px; text-align: center; }
-        th { background: var(--primary); color: white; }
-        .total-row { font-weight: bold; background: #f9f9f9; }
-        .badge { background: #eee; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; }
+        :root { 
+            --primary: #4A00E0; 
+            --secondary: #8E2DE2; 
+            --accent: #FFD700;
+            --text: #333;
+        }
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            margin: 0; 
+            background: linear-gradient(135deg, var(--secondary), var(--primary)); 
+            color: var(--text);
+            min-height: 100vh;
+            padding: 15px;
+        }
+        .container { 
+            background: rgba(255, 255, 255, 0.95); 
+            padding: 20px; 
+            max-width: 600px; 
+            margin: auto; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+        }
+        h2, h3 { text-align: center; color: var(--primary); margin-top: 0; }
+        
+        /* Diseño compacto para las entradas */
+        .grid-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .input-card {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #e1e4e8;
+        }
+        .input-card label { font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px; color: var(--primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .input-card input { 
+            width: 80%; 
+            padding: 8px; 
+            border: 1px solid #ccc; 
+            border-radius: 8px; 
+            text-align: center; 
+            font-size: 16px;
+        }
+
+        .setup-card { display: flex; gap: 10px; margin-bottom: 15px; }
+        .setup-card input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; }
+        
+        button { 
+            width: 100%; 
+            padding: 14px; 
+            border: none; 
+            border-radius: 10px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            font-size: 16px; 
+            transition: transform 0.1s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:active { transform: scale(0.98); }
+        .btn-add { background: var(--secondary); color: white; width: auto; padding: 12px 20px; }
+        .btn-start { background: var(--primary); color: white; margin-top: 10px; }
+        .btn-round { background: #27ae60; color: white; }
+        .btn-end { background: #e74c3c; color: white; margin-top: 20px; }
+        
+        .player-badge { background: #e1b12c; color: white; padding: 5px 12px; border-radius: 20px; display: inline-block; margin: 5px; font-weight: bold; font-size: 14px; }
+        
+        /* Tabla mejorada */
+        .table-container { overflow-x: auto; margin-top: 15px; border-radius: 10px; border: 1px solid #eee; }
+        table { width: 100%; border-collapse: collapse; background: white; font-size: 14px; }
+        th, td { border-bottom: 1px solid #eee; padding: 10px; text-align: center; }
+        th { background: #f8f9fa; color: var(--primary); }
+        .total-row { font-weight: bold; background: #fff3cd; color: #856404; font-size: 16px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div id="setup">
             <h2>🚂 Tren Mexicano</h2>
-            <div class="card">
+            <div class="setup-card">
                 <input type="text" id="playerName" placeholder="Nombre del jugador">
-                <button class="btn-add" onclick="addPlayer()">Añadir Jugador</button>
-                <div id="playerList" style="margin-top:10px;"></div>
-                <button class="btn-round" style="background:var(--primary)" onclick="startGame()">Empezar Juego</button>
+                <button class="btn-add" onclick="addPlayer()">+</button>
             </div>
+            <div id="playerList"></div>
+            <button class="btn-start" onclick="startGame()">Empezar Juego</button>
         </div>
 
         <div id="game" style="display:none;">
             <div id="inputsContainer"></div>
-            <button class="btn-round" onclick="finishRound()">Finalizar Ronda</button>
+            <button class="btn-round" onclick="finishRound()">+ Sumar Ronda</button>
             
-            <h3>Historial y Totales</h3>
-            <div style="overflow-x: auto;">
+            <div class="table-container">
                 <table id="historyTable">
-                    <thead><tr id="headerRow"><th>Ronda</th></tr></thead>
+                    <thead><tr id="headerRow"><th>R#</th></tr></thead>
                     <tbody id="historyBody"></tbody>
-                    <tfoot><tr id="footerRow" class="total-row"><td>TOTAL</td></tr></tfoot>
+                    <tfoot><tr id="footerRow" class="total-row"><td>TOT</td></tr></tfoot>
                 </table>
             </div>
             
-            <button class="btn-end" onclick="showWinner()">Finalizar Juego (Ranking)</button>
+            <button class="btn-end" onclick="showWinner()">🏆 Finalizar Juego</button>
         </div>
     </div>
 
@@ -57,8 +119,8 @@
         function addPlayer() {
             const name = document.getElementById('playerName').value;
             if(name) {
-                players.push({ name: name, history: [], total: 0 });
-                document.getElementById('playerList').innerHTML += `<div>👤 ${name}</div>`;
+                players.push({ name: name, total: 0 });
+                document.getElementById('playerList').innerHTML += `<span class="player-badge">${name}</span>`;
                 document.getElementById('playerName').value = '';
             }
         }
@@ -68,11 +130,10 @@
             document.getElementById('setup').style.display = 'none';
             document.getElementById('game').style.display = 'block';
             
-            // Preparar encabezados de tabla
             const header = document.getElementById('headerRow');
             const footer = document.getElementById('footerRow');
             players.forEach(p => {
-                header.innerHTML += `<th>${p.name}</th>`;
+                header.innerHTML += `<th>${p.name.substring(0,3).toUpperCase()}</th>`; // Abrevia nombres en tabla
                 footer.innerHTML += `<td id="total-${p.name}">0</td>`;
             });
             renderInputs();
@@ -80,21 +141,22 @@
 
         function renderInputs() {
             const container = document.getElementById('inputsContainer');
-            container.innerHTML = `<h3>Puntos Ronda ${roundCount}</h3>`;
+            let html = `<h3>Puntos Ronda ${roundCount}</h3><div class="grid-inputs">`;
             players.forEach((p, i) => {
-                container.innerHTML += `
-                    <div class="card">
+                html += `
+                    <div class="input-card">
                         <label>${p.name}</label>
                         <input type="number" id="pts-${i}" placeholder="0" inputmode="numeric">
                     </div>`;
             });
+            html += `</div>`;
+            container.innerHTML = html;
         }
 
         function finishRound() {
             let row = `<tr><td>${roundCount}</td>`;
             players.forEach((p, i) => {
                 const val = parseInt(document.getElementById(`pts-${i}`).value) || 0;
-                p.history.push(val);
                 p.total += val;
                 row += `<td>${val}</td>`;
                 document.getElementById(`total-${p.name}`).innerText = p.total;
@@ -104,17 +166,33 @@
             
             roundCount++;
             renderInputs();
-            window.scrollTo(0,0);
         }
 
         function showWinner() {
             let copyPlayers = [...players];
-            copyPlayers.sort((a, b) => a.total - b.total);
+            copyPlayers.sort((a, b) => a.total - b.total); // El de menos puntos gana
+            
+            let winnerName = copyPlayers[0].name;
             let res = "🏆 RESULTADOS FINALES:\n\n";
+            
             copyPlayers.forEach((p, i) => {
-                res += `${i+1}. ${p.name}: ${p.total} pts\n`;
+                let medal = i === 0 ? "🥇 " : i === 1 ? "🥈 " : i === 2 ? "🥉 " : "   ";
+                res += `${medal} ${i+1}. ${p.name}: ${p.total} pts\n`;
             });
-            alert(res);
+
+            // Lluvia de Confeti
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+
+            // Voz en alta
+            if ('speechSynthesis' in window) {
+                let msg = new SpeechSynthesisUtterance(`¡Felicidades ${winnerName}, eres el ganador absoluto del tren mexicano!`);
+                msg.lang = 'es-MX'; // Acento en español latino
+                msg.rate = 1.0;
+                window.speechSynthesis.speak(msg);
+            }
+
+            // Damos un pequeño retraso a la alerta para que se vea el confeti y se escuche la voz
+            setTimeout(() => { alert(res); }, 500);
         }
     </script>
 </body>
