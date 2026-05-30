@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tren Mexicano Premium</title>
+    <!-- Librería para el Confeti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root { 
@@ -73,6 +74,7 @@
         .btn-start { background: var(--primary); color: white; margin-top: 10px; }
         .btn-round { background: #27ae60; color: white; }
         .btn-end { background: #e74c3c; color: white; margin-top: 20px; }
+        .btn-reset { background: #7f8c8d; color: white; margin-top: 10px; }
         
         .player-badge { background: #e1b12c; color: white; padding: 5px 12px; border-radius: 20px; display: inline-block; margin: 5px; font-weight: bold; font-size: 14px; }
         
@@ -109,33 +111,85 @@
             </div>
             
             <button class="btn-end" onclick="showWinner()">🏆 Finalizar Juego</button>
+            <button class="btn-reset" onclick="resetGame()">🔄 Borrar todo y empezar de cero</button>
         </div>
     </div>
 
     <script>
         let players = [];
         let roundCount = 1;
+        let isGameStarted = false;
+
+        // Cargar datos guardados al abrir la app
+        window.onload = () => {
+            const savedData = localStorage.getItem('trenMexicanoSave');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                players = data.players || [];
+                roundCount = data.roundCount || 1;
+                isGameStarted = data.isGameStarted || false;
+
+                if (isGameStarted) {
+                    document.getElementById('setup').style.display = 'none';
+                    document.getElementById('game').style.display = 'block';
+                    rebuildGameUI();
+                } else {
+                    players.forEach(p => {
+                        document.getElementById('playerList').innerHTML += `<span class="player-badge">${p.name}</span>`;
+                    });
+                }
+            }
+        };
+
+        // Función para guardar en la memoria del teléfono
+        function saveGame() {
+            localStorage.setItem('trenMexicanoSave', JSON.stringify({ players, roundCount, isGameStarted }));
+        }
 
         function addPlayer() {
-            const name = document.getElementById('playerName').value;
+            const name = document.getElementById('playerName').value.trim();
             if(name) {
-                players.push({ name: name, total: 0 });
+                players.push({ name: name, total: 0, history: [] }); // Añadimos historial a cada jugador
                 document.getElementById('playerList').innerHTML += `<span class="player-badge">${name}</span>`;
                 document.getElementById('playerName').value = '';
+                saveGame();
             }
         }
 
         function startGame() {
             if(players.length === 0) return alert("Añade al menos un jugador");
+            isGameStarted = true;
             document.getElementById('setup').style.display = 'none';
             document.getElementById('game').style.display = 'block';
-            
+            saveGame();
+            rebuildGameUI();
+        }
+
+        // Esta función reconstruye la pantalla si recargas la página
+        function rebuildGameUI() {
             const header = document.getElementById('headerRow');
             const footer = document.getElementById('footerRow');
+            const tbody = document.getElementById('historyBody');
+            
+            header.innerHTML = '<th>R#</th>';
+            footer.innerHTML = '<td>TOT</td>';
+            tbody.innerHTML = '';
+
             players.forEach(p => {
-                header.innerHTML += `<th>${p.name.substring(0,3).toUpperCase()}</th>`; // Abrevia nombres en tabla
-                footer.innerHTML += `<td id="total-${p.name}">0</td>`;
+                header.innerHTML += `<th>${p.name.substring(0,3).toUpperCase()}</th>`;
+                footer.innerHTML += `<td id="total-${p.name}">${p.total}</td>`;
             });
+
+            // Reconstruir rondas anteriores
+            for (let r = 0; r < roundCount - 1; r++) {
+                let row = `<tr><td>${r + 1}</td>`;
+                players.forEach(p => {
+                    row += `<td>${p.history[r]}</td>`;
+                });
+                row += `</tr>`;
+                tbody.innerHTML += row;
+            }
+
             renderInputs();
         }
 
@@ -154,18 +208,15 @@
         }
 
         function finishRound() {
-            let row = `<tr><td>${roundCount}</td>`;
             players.forEach((p, i) => {
                 const val = parseInt(document.getElementById(`pts-${i}`).value) || 0;
                 p.total += val;
-                row += `<td>${val}</td>`;
-                document.getElementById(`total-${p.name}`).innerText = p.total;
+                p.history.push(val); // Guardamos lo que hizo en esta ronda
             });
-            row += `</tr>`;
-            document.getElementById('historyBody').innerHTML += row;
             
             roundCount++;
-            renderInputs();
+            saveGame();
+            rebuildGameUI(); // Refresca la tabla
         }
 
         function showWinner() {
@@ -186,13 +237,20 @@
             // Voz en alta
             if ('speechSynthesis' in window) {
                 let msg = new SpeechSynthesisUtterance(`¡Felicidades ${winnerName}, eres el ganador absoluto del tren mexicano!`);
-                msg.lang = 'es-MX'; // Acento en español latino
+                msg.lang = 'es-MX'; 
                 msg.rate = 1.0;
                 window.speechSynthesis.speak(msg);
             }
 
-            // Damos un pequeño retraso a la alerta para que se vea el confeti y se escuche la voz
             setTimeout(() => { alert(res); }, 500);
+        }
+
+        // Nueva función para borrar la memoria
+        function resetGame() {
+            if(confirm("¿Seguro que quieres borrar la partida actual y empezar de cero?")) {
+                localStorage.removeItem('trenMexicanoSave');
+                location.reload(); // Recarga la página para volver al inicio
+            }
         }
     </script>
 </body>
